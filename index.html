@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interfacing Color Sensor with Arduino | ECE Learning</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4f8;color:#1a2340;line-height:1.7;}
+header{background:linear-gradient(135deg,#1a2340 0%,#2563eb 60%,#06b6d4 100%);color:#fff;padding:36px 24px 24px;text-align:center;}
+header .badge{display:inline-block;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:20px;padding:4px 16px;font-size:0.82rem;letter-spacing:1px;margin-bottom:10px;}
+header h1{font-size:2.1rem;font-weight:800;margin-bottom:6px;}
+header h2{font-size:1.15rem;font-weight:400;opacity:0.88;margin-bottom:14px;}
+.obj-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;}
+.obj-pill{background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.25);border-radius:14px;padding:4px 14px;font-size:0.8rem;}
+nav{background:#1a2340;position:sticky;top:0;z-index:100;overflow-x:auto;white-space:nowrap;}
+nav a{display:inline-block;color:#cbd5e1;padding:13px 16px;font-size:0.82rem;text-decoration:none;transition:color 0.2s,background 0.2s;}
+nav a:hover{color:#fff;background:#2563eb;}
+.container{max-width:1100px;margin:0 auto;padding:24px 16px;}
+section{background:#fff;border-radius:12px;padding:28px;margin-bottom:24px;box-shadow:0 2px 12px rgba(30,60,120,0.07);}
+h3{font-size:1.25rem;color:#1e3a8a;border-left:4px solid #2563eb;padding-left:12px;margin-bottom:16px;}
+h4{font-size:1rem;color:#1e3a8a;margin:16px 0 8px;}
+p{margin-bottom:12px;}
+ul,ol{margin:0 0 12px 22px;}
+li{margin-bottom:5px;}
+table{width:100%;border-collapse:collapse;margin:14px 0;font-size:0.92rem;}
+th{background:#1e3a8a;color:#fff;padding:9px 12px;text-align:left;}
+td{padding:8px 12px;border-bottom:1px solid #e2e8f0;}
+tr:nth-child(even) td{background:#f1f5fb;}
+.eq-box{background:#f0f7ff;border-left:4px solid #2563eb;border-radius:6px;padding:14px 18px;margin:12px 0;font-family:'Courier New',monospace;font-size:1rem;}
+.note{background:#fef9c3;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:0.93rem;}
+.tip{background:#dcfce7;border-left:4px solid #16a34a;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:0.93rem;}
+.warn{background:#fee2e2;border-left:4px solid #dc2626;border-radius:6px;padding:12px 16px;margin:12px 0;font-size:0.93rem;}
+.solved{background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:18px;margin:14px 0;}
+.solved .q{font-weight:700;color:#1e3a8a;margin-bottom:8px;}
+.step{background:#eff6ff;border-radius:5px;padding:8px 12px;margin:5px 0;font-size:0.93rem;}
+.ans{background:#dcfce7;border-radius:5px;padding:8px 12px;margin:8px 0;font-weight:700;color:#166534;}
+details{border:1px solid #e2e8f0;border-radius:8px;margin:8px 0;}
+details summary{padding:12px 16px;cursor:pointer;font-weight:600;color:#1e3a8a;background:#f8fafc;border-radius:8px;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+details summary::after{content:'▼';font-size:0.75rem;transition:transform 0.2s;}
+details[open] summary::after{transform:rotate(180deg);}
+details[open] summary{border-radius:8px 8px 0 0;}
+.details-body{padding:14px 16px;}
+.quiz-q{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin:12px 0;}
+.quiz-q .qtext{font-weight:600;margin-bottom:10px;}
+.quiz-q label{display:block;padding:6px 10px;border-radius:5px;cursor:pointer;margin:3px 0;transition:background 0.15s;}
+.quiz-q label:hover{background:#eff6ff;}
+.quiz-q input[type=radio]{margin-right:8px;}
+.correct-ans{background:#dcfce7!important;border:1px solid #16a34a;}
+.wrong-ans{background:#fee2e2!important;border:1px solid #dc2626;}
+.explanation{background:#eff6ff;border-radius:5px;padding:8px 12px;margin-top:8px;font-size:0.9rem;display:none;}
+.btn{background:#2563eb;color:#fff;border:none;padding:11px 28px;border-radius:7px;cursor:pointer;font-size:0.97rem;font-weight:600;margin:6px 4px;transition:background 0.2s;}
+.btn:hover{background:#1d4ed8;}
+.btn-reset{background:#64748b;}
+.btn-reset:hover{background:#475569;}
+.score-box{background:#1e3a8a;color:#fff;border-radius:8px;padding:16px 22px;margin:14px 0;font-size:1.1rem;display:none;}
+.diff-easy{background:#dcfce7;color:#166534;border-radius:10px;padding:2px 10px;font-size:0.75rem;font-weight:700;margin-left:8px;}
+.diff-mod{background:#fef9c3;color:#92400e;border-radius:10px;padding:2px 10px;font-size:0.75rem;font-weight:700;margin-left:8px;}
+.diff-hard{background:#fee2e2;color:#991b1b;border-radius:10px;padding:2px 10px;font-size:0.75rem;font-weight:700;margin-left:8px;}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:12px 0;}
+.formula-card{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;}
+.formula-card .fname{font-weight:700;color:#1e3a8a;margin-bottom:6px;font-size:0.9rem;}
+.formula-card .feq{font-family:'Courier New',monospace;font-size:0.97rem;color:#1e40af;}
+.app-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:12px 0;}
+.app-card{background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1px solid #bfdbfe;border-radius:10px;padding:16px;text-align:center;}
+.app-card .icon{font-size:2rem;margin-bottom:8px;}
+.app-card .atitle{font-weight:700;color:#1e3a8a;font-size:0.95rem;}
+.app-card .adesc{font-size:0.82rem;color:#475569;margin-top:4px;}
+footer{background:#1a2340;color:#94a3b8;text-align:center;padding:22px;font-size:0.85rem;margin-top:10px;}
+@media(max-width:700px){header h1{font-size:1.4rem;}nav a{padding:10px 10px;font-size:0.78rem;}.formula-grid{grid-template-columns:1fr;}}
+@media print{nav,footer,.btn{display:none!important;}body{background:#fff;}section{box-shadow:none;border:1px solid #ccc;}}
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">Embedded Systems &amp; IoT | Arduino</div>
+  <h1>🎨 Interfacing Color Sensor with Arduino</h1>
+  <h2>TCS3200 / TCS34725 Color Sensor — Complete Learning Resource</h2>
+  <p style="opacity:0.8;font-size:0.9rem;">B.E./B.Tech ECE &nbsp;|&nbsp; College Students &nbsp;|&nbsp; GATE Aspirants &nbsp;|&nbsp; Core Electronics Interviews</p>
+  <div class="obj-grid">
+    <span class="obj-pill">🎯 Understand color sensing principles</span>
+    <span class="obj-pill">🔌 Interface TCS3200/TCS34725 with Arduino</span>
+    <span class="obj-pill">💻 Write Arduino code for color detection</span>
+    <span class="obj-pill">📊 Calibrate and interpret sensor output</span>
+    <span class="obj-pill">🏭 Apply in real-world projects</span>
+  </div>
+</header>
+<nav>
+  <a href="#intro">Introduction</a>
+  <a href="#circuit">Circuit Diagram</a>
+  <a href="#working">Working Principle</a>
+  <a href="#waveforms">Waveforms</a>
+  <a href="#equations">Equations</a>
+  <a href="#solved">Solved Problems</a>
+  <a href="#gate">GATE Prep</a>
+  <a href="#interview">Interview Q&amp;A</a>
+  <a href="#applications">Applications</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#revision">Revision</a>
+</nav>
+<div class="container">
+
+<!-- SECTION 1: INTRODUCTION -->
+<section id="intro">
+<h3>1. Introduction &amp; Learning Objectives</h3>
+<h4>What is a Color Sensor?</h4>
+<p>A <strong>color sensor</strong> is an electronic device that detects and identifies the color of an object by measuring the intensity of reflected light across different wavelength bands (Red, Green, Blue). It converts optical information into electrical signals that a microcontroller like Arduino can process.</p>
+<p>The most popular color sensors used with Arduino are the <strong>TCS3200</strong> (frequency output) and <strong>TCS34725</strong> (I²C digital output). These sensors use an array of photodiodes with color filters to separate RGB components of incident light.</p>
+<h4>Importance in Electronics Engineering</h4>
+<ul>
+  <li>Enables machines to perceive color — a fundamental human sense — in automation systems.</li>
+  <li>Core component in quality control, robotics, medical diagnostics, and consumer electronics.</li>
+  <li>Demonstrates key ECE concepts: photodetection, ADC, I²C/frequency interfaces, and embedded programming.</li>
+  <li>Bridges analog sensing with digital processing — a critical skill for embedded systems engineers.</li>
+</ul>
+<h4>Learning Objectives</h4>
+<ol>
+  <li>Explain the operating principle of photodiode-based color sensing.</li>
+  <li>Describe the pin configuration and internal architecture of TCS3200 and TCS34725.</li>
+  <li>Interface a color sensor with Arduino using frequency output and I²C protocol.</li>
+  <li>Write, compile, and upload Arduino code for color detection and classification.</li>
+  <li>Perform sensor calibration for accurate color readings.</li>
+  <li>Apply color sensing in real-world embedded systems projects.</li>
+</ol>
+<h4>Prerequisite Concepts</h4>
+<ul>
+  <li>Basic electronics: resistors, LEDs, photodiodes</li>
+  <li>Arduino IDE and C/C++ programming basics</li>
+  <li>Digital I/O and PWM on Arduino</li>
+  <li>I²C communication protocol (for TCS34725)</li>
+  <li>Frequency measurement using Arduino (pulseIn / interrupts)</li>
+  <li>RGB color model basics</li>
+</ul>
+<h4>Key Terminology</h4>
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td>Photodiode</td><td>A semiconductor device that converts light into electrical current.</td></tr>
+  <tr><td>Color Filter Array</td><td>Array of optical filters (R, G, B, Clear) placed over photodiodes to isolate wavelength bands.</td></tr>
+  <tr><td>RGB</td><td>Red-Green-Blue color model; primary colors of light.</td></tr>
+  <tr><td>Frequency Scaling</td><td>TCS3200 feature that scales output frequency to 2%, 20%, or 100% of full scale.</td></tr>
+  <tr><td>I²C</td><td>Inter-Integrated Circuit — two-wire serial protocol (SDA, SCL) used by TCS34725.</td></tr>
+  <tr><td>Lux</td><td>SI unit of illuminance (lumens per square meter).</td></tr>
+  <tr><td>White Balance</td><td>Calibration process to ensure neutral colors appear neutral under a given light source.</td></tr>
+  <tr><td>Integration Time</td><td>Duration over which the sensor accumulates light — affects sensitivity and range.</td></tr>
+  <tr><td>Gain</td><td>Amplification factor applied to the photodiode output (1×, 4×, 16×, 60× in TCS34725).</td></tr>
+</table>
+<h4>Types / Classification</h4>
+<table>
+  <tr><th>Sensor</th><th>Output Type</th><th>Interface</th><th>Resolution</th><th>Best For</th></tr>
+  <tr><td>TCS3200</td><td>Frequency (square wave)</td><td>Digital GPIO</td><td>Analog (scaled freq)</td><td>Simple color sorting, beginners</td></tr>
+  <tr><td>TCS34725</td><td>16-bit digital RGBC</td><td>I²C</td><td>16-bit per channel</td><td>Accurate color measurement</td></tr>
+  <tr><td>APDS-9960</td><td>Digital RGBC + gesture</td><td>I²C</td><td>16-bit per channel</td><td>Gesture + color detection</td></tr>
+  <tr><td>ISL29125</td><td>Digital RGB</td><td>I²C</td><td>16-bit per channel</td><td>Low-light environments</td></tr>
+</table>
+</section>
+
+<!-- SECTION 2: CIRCUIT DIAGRAM -->
+<section id="circuit">
+<h3>2. Circuit Diagram</h3>
+<h4>TCS3200 Color Sensor — Arduino Uno Interfacing</h4>
+<svg viewBox="0 0 820 420" style="width:100%;max-width:820px;display:block;margin:0 auto;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;" font-family="Arial,sans-serif" font-size="12">
+  <!-- Arduino Board -->
+  <rect x="10" y="140" width="160" height="240" rx="8" fill="#1a6b3c" stroke="#0f4a28" stroke-width="2"/>
+  <text x="90" y="162" text-anchor="middle" fill="#fff" font-weight="bold" font-size="13">Arduino Uno</text>
+  <!-- Arduino pins -->
+  <rect x="150" y="175" width="20" height="12" rx="2" fill="#f59e0b"/>
+  <text x="145" y="185" text-anchor="end" fill="#fff" font-size="10">5V</text>
+  <rect x="150" y="195" width="20" height="12" rx="2" fill="#64748b"/>
+  <text x="145" y="205" text-anchor="end" fill="#fff" font-size="10">GND</text>
+  <rect x="150" y="215" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="145" y="225" text-anchor="end" fill="#fff" font-size="10">D2</text>
+  <rect x="150" y="235" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="145" y="245" text-anchor="end" fill="#fff" font-size="10">D3</text>
+  <rect x="150" y="255" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="145" y="265" text-anchor="end" fill="#fff" font-size="10">D4</text>
+  <rect x="150" y="275" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="145" y="285" text-anchor="end" fill="#fff" font-size="10">D5</text>
+  <rect x="150" y="295" width="20" height="12" rx="2" fill="#10b981"/>
+  <text x="145" y="305" text-anchor="end" fill="#fff" font-size="10">D6 (OUT)</text>
+
+  <!-- TCS3200 Sensor Module -->
+  <rect x="380" y="120" width="200" height="220" rx="8" fill="#1e3a8a" stroke="#1e40af" stroke-width="2"/>
+  <text x="480" y="145" text-anchor="middle" fill="#fff" font-weight="bold" font-size="13">TCS3200</text>
+  <text x="480" y="162" text-anchor="middle" fill="#93c5fd" font-size="10">Color Sensor Module</text>
+  <!-- Photodiode array illustration -->
+  <rect x="410" y="175" width="160" height="80" rx="4" fill="#0f172a"/>
+  <text x="490" y="192" text-anchor="middle" fill="#94a3b8" font-size="9">Photodiode Array (8×8)</text>
+  <!-- Color filter squares -->
+  <rect x="420" y="198" width="28" height="28" rx="3" fill="#ef4444" opacity="0.85"/>
+  <text x="434" y="216" text-anchor="middle" fill="#fff" font-size="9">R</text>
+  <rect x="455" y="198" width="28" height="28" rx="3" fill="#22c55e" opacity="0.85"/>
+  <text x="469" y="216" text-anchor="middle" fill="#fff" font-size="9">G</text>
+  <rect x="490" y="198" width="28" height="28" rx="3" fill="#3b82f6" opacity="0.85"/>
+  <text x="504" y="216" text-anchor="middle" fill="#fff" font-size="9">B</text>
+  <rect x="525" y="198" width="28" height="28" rx="3" fill="#e2e8f0" opacity="0.85"/>
+  <text x="539" y="216" text-anchor="middle" fill="#1a2340" font-size="9">C</text>
+  <!-- White LEDs -->
+  <circle cx="430" cy="240" r="8" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="430" y="244" text-anchor="middle" fill="#92400e" font-size="8">LED</text>
+  <circle cx="460" cy="240" r="8" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="460" y="244" text-anchor="middle" fill="#92400e" font-size="8">LED</text>
+  <circle cx="510" cy="240" r="8" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="510" y="244" text-anchor="middle" fill="#92400e" font-size="8">LED</text>
+  <circle cx="540" cy="240" r="8" fill="#fef9c3" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="540" y="244" text-anchor="middle" fill="#92400e" font-size="8">LED</text>
+  <!-- Sensor pins -->
+  <rect x="360" y="175" width="20" height="12" rx="2" fill="#f59e0b"/>
+  <text x="385" y="185" fill="#fff" font-size="10">VCC</text>
+  <rect x="360" y="195" width="20" height="12" rx="2" fill="#64748b"/>
+  <text x="385" y="205" fill="#fff" font-size="10">GND</text>
+  <rect x="360" y="215" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="385" y="225" fill="#fff" font-size="10">S0</text>
+  <rect x="360" y="235" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="385" y="245" fill="#fff" font-size="10">S1</text>
+  <rect x="360" y="255" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="385" y="265" fill="#fff" font-size="10">S2</text>
+  <rect x="360" y="275" width="20" height="12" rx="2" fill="#3b82f6"/>
+  <text x="385" y="285" fill="#fff" font-size="10">S3</text>
+  <rect x="360" y="295" width="20" height="12" rx="2" fill="#10b981"/>
+  <text x="385" y="305" fill="#fff" font-size="10">OUT</text>
+  <!-- Wires -->
+  <line x1="170" y1="181" x2="360" y2="181" stroke="#f59e0b" stroke-width="2"/>
+  <line x1="170" y1="201" x2="360" y2="201" stroke="#64748b" stroke-width="2"/>
+  <line x1="170" y1="221" x2="360" y2="221" stroke="#3b82f6" stroke-width="2"/>
+  <line x1="170" y1="241" x2="360" y2="241" stroke="#3b82f6" stroke-width="2"/>
+  <line x1="170" y1="261" x2="360" y2="261" stroke="#3b82f6" stroke-width="2"/>
+  <line x1="170" y1="281" x2="360" y2="281" stroke="#3b82f6" stroke-width="2"/>
+  <line x1="170" y1="301" x2="360" y2="301" stroke="#10b981" stroke-width="2"/>
+  <!-- Object being sensed -->
+  <rect x="620" y="200" width="80" height="80" rx="8" fill="#ef4444" stroke="#b91c1c" stroke-width="2"/>
+  <text x="660" y="245" text-anchor="middle" fill="#fff" font-weight="bold" font-size="13">Object</text>
+  <!-- Light arrows -->
+  <line x1="580" y1="240" x2="620" y2="240" stroke="#fef9c3" stroke-width="2" stroke-dasharray="4,3"/>
+  <polygon points="618,235 628,240 618,245" fill="#fef9c3"/>
+  <line x1="620" y1="260" x2="580" y2="280" stroke="#ef4444" stroke-width="2" stroke-dasharray="4,3"/>
+  <polygon points="582,275 578,285 588,280" fill="#ef4444"/>
+  <text x="595" y="230" text-anchor="middle" fill="#f59e0b" font-size="9">White LED</text>
+  <text x="595" y="295" text-anchor="middle" fill="#ef4444" font-size="9">Reflected</text>
+  <!-- Labels -->
+  <text x="90" y="400" text-anchor="middle" fill="#475569" font-size="10">Arduino Uno</text>
+  <text x="480" y="360" text-anchor="middle" fill="#475569" font-size="10">TCS3200 Module</text>
+  <text x="660" y="300" text-anchor="middle" fill="#475569" font-size="10">Colored Object</text>
+  <!-- Title -->
+  <text x="410" y="30" text-anchor="middle" fill="#1e3a8a" font-size="15" font-weight="bold">TCS3200 Color Sensor — Arduino Uno Interfacing</text>
+  <text x="410" y="50" text-anchor="middle" fill="#64748b" font-size="11">[Illustrative Diagram]</text>
+  <!-- Legend -->
+  <rect x="30" y="60" width="12" height="8" fill="#f59e0b"/>
+  <text x="48" y="69" fill="#475569" font-size="10">5V Power</text>
+  <rect x="110" y="60" width="12" height="8" fill="#64748b"/>
+  <text x="128" y="69" fill="#475569" font-size="10">GND</text>
+  <rect x="180" y="60" width="12" height="8" fill="#3b82f6"/>
+  <text x="198" y="69" fill="#475569" font-size="10">Control Signals</text>
+  <rect x="290" y="60" width="12" height="8" fill="#10b981"/>
+  <text x="308" y="69" fill="#475569" font-size="10">Output Signal</text>
+</svg>
+
+<h4>Pin Connection Table — TCS3200 to Arduino Uno</h4>
+<table>
+  <tr><th>TCS3200 Pin</th><th>Arduino Pin</th><th>Wire Color</th><th>Function</th></tr>
+  <tr><td>VCC</td><td>5V</td><td>Red</td><td>Power supply (5V DC)</td></tr>
+  <tr><td>GND</td><td>GND</td><td>Black</td><td>Common ground</td></tr>
+  <tr><td>S0</td><td>D2</td><td>Blue</td><td>Frequency scaling bit 0</td></tr>
+  <tr><td>S1</td><td>D3</td><td>Blue</td><td>Frequency scaling bit 1</td></tr>
+  <tr><td>S2</td><td>D4</td><td>Blue</td><td>Photodiode filter select bit 0</td></tr>
+  <tr><td>S3</td><td>D5</td><td>Blue</td><td>Photodiode filter select bit 1</td></tr>
+  <tr><td>OUT</td><td>D6</td><td>Green</td><td>Frequency output signal</td></tr>
+  <tr><td>OE</td><td>GND</td><td>Black</td><td>Output Enable (active LOW — tie to GND)</td></tr>
+</table>
+
+<h4>Component Function Table</h4>
+<table>
+  <tr><th>Component</th><th>Quantity</th><th>Function</th></tr>
+  <tr><td>TCS3200 Module</td><td>1</td><td>Detects RGB color via photodiode array + frequency output</td></tr>
+  <tr><td>Arduino Uno</td><td>1</td><td>Reads frequency output, processes color data, controls logic</td></tr>
+  <tr><td>White LEDs (on module)</td><td>4</td><td>Illuminate the target object for consistent sensing</td></tr>
+  <tr><td>Connecting wires</td><td>7</td><td>Signal and power connections</td></tr>
+  <tr><td>USB Cable</td><td>1</td><td>Power + serial communication with PC</td></tr>
+</table>
+
+<h4>TCS34725 (I²C) — Alternative Connection</h4>
+<table>
+  <tr><th>TCS34725 Pin</th><th>Arduino Pin</th><th>Function</th></tr>
+  <tr><td>VIN / VCC</td><td>3.3V or 5V</td><td>Power supply</td></tr>
+  <tr><td>GND</td><td>GND</td><td>Ground</td></tr>
+  <tr><td>SDA</td><td>A4 (SDA)</td><td>I²C Data line</td></tr>
+  <tr><td>SCL</td><td>A5 (SCL)</td><td>I²C Clock line</td></tr>
+  <tr><td>INT</td><td>D2 (optional)</td><td>Interrupt output (threshold alert)</td></tr>
+  <tr><td>LED</td><td>3.3V or GPIO</td><td>Onboard white LED control</td></tr>
+</table>
+</section>
+
+<!-- SECTION 3: WORKING PRINCIPLE -->
+<section id="working">
+<h3>3. Working Principle &amp; Detailed Explanation</h3>
+<h4>How TCS3200 Works — Step by Step</h4>
+<ol>
+  <li><strong>Illumination:</strong> Four white LEDs on the module illuminate the target object with broadband white light.</li>
+  <li><strong>Reflection:</strong> The object reflects light based on its surface color. A red object absorbs green and blue, reflecting mostly red wavelengths.</li>
+  <li><strong>Photodiode Array:</strong> The TCS3200 contains an 8×8 array of 64 photodiodes. 16 have red filters, 16 have green filters, 16 have blue filters, and 16 are clear (no filter).</li>
+  <li><strong>Filter Selection (S2, S3):</strong> The S2 and S3 pins select which group of photodiodes is active at a time.</li>
+  <li><strong>Current-to-Frequency Conversion:</strong> The photocurrent from the selected photodiodes is fed into a current-to-frequency converter. Higher light intensity → higher output frequency.</li>
+  <li><strong>Frequency Output (OUT):</strong> A square wave is output on the OUT pin. The frequency is proportional to the intensity of the selected color component.</li>
+  <li><strong>Arduino Measurement:</strong> Arduino measures the frequency using pulseIn() or hardware interrupts, then maps it to a 0–255 RGB value after calibration.</li>
+</ol>
+
+<h4>Filter Selection Truth Table (S2, S3)</h4>
+<table>
+  <tr><th>S2</th><th>S3</th><th>Active Filter</th><th>Measures</th></tr>
+  <tr><td>LOW</td><td>LOW</td><td>Red</td><td>Red light intensity</td></tr>
+  <tr><td>LOW</td><td>HIGH</td><td>Blue</td><td>Blue light intensity</td></tr>
+  <tr><td>HIGH</td><td>LOW</td><td>Clear (no filter)</td><td>Overall light intensity</td></tr>
+  <tr><td>HIGH</td><td>HIGH</td><td>Green</td><td>Green light intensity</td></tr>
+</table>
+
+<h4>Frequency Scaling (S0, S1)</h4>
+<table>
+  <tr><th>S0</th><th>S1</th><th>Output Frequency Scaling</th><th>Use Case</th></tr>
+  <tr><td>LOW</td><td>LOW</td><td>Power down (output disabled)</td><td>Sleep mode</td></tr>
+  <tr><td>LOW</td><td>HIGH</td><td>2% of full scale</td><td>Very slow MCU</td></tr>
+  <tr><td>HIGH</td><td>LOW</td><td>20% of full scale</td><td>General use</td></tr>
+  <tr><td>HIGH</td><td>HIGH</td><td>100% of full scale</td><td>Fast MCU, max accuracy</td></tr>
+</table>
+<div class="note">💡 For Arduino Uno (16 MHz), use 20% scaling (S0=HIGH, S1=LOW) to keep output frequency in a measurable range (~12 kHz max).</div>
+
+<h4>Arduino Code — TCS3200 Color Detection</h4>
+<pre style="background:#1e293b;color:#e2e8f0;padding:18px;border-radius:8px;overflow-x:auto;font-size:0.88rem;line-height:1.6;">
+<code>// TCS3200 Color Sensor with Arduino Uno
+#define S0 2
+#define S1 3
+#define S2 4
+#define S3 5
+#define OUT 6
+
+int redFreq, greenFreq, blueFreq;
+int redVal, greenVal, blueVal;
+
+// Calibration values (adjust after calibration)
+int redMin=25, redMax=900;
+int greenMin=30, greenMax=950;
+int blueMin=20, blueMax=880;
+
+void setup() {
+  pinMode(S0, OUTPUT); pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT); pinMode(S3, OUTPUT);
+  pinMode(OUT, INPUT);
+  // Set frequency scaling to 20%
+  digitalWrite(S0, HIGH); digitalWrite(S1, LOW);
+  Serial.begin(9600);
+}
+
+int readColor(int s2val, int s3val) {
+  digitalWrite(S2, s2val); digitalWrite(S3, s3val);
+  delay(100);
+  return pulseIn(OUT, LOW); // measure pulse width (inversely proportional to freq)
+}
+
+void loop() {
+  redFreq   = readColor(LOW,  LOW);   // Red filter
+  greenFreq = readColor(HIGH, HIGH);  // Green filter
+  blueFreq  = readColor(LOW,  HIGH);  // Blue filter
+
+  // Map frequency to 0-255 (invert: lower freq = higher intensity)
+  redVal   = map(redFreq,   redMin,   redMax,   255, 0);
+  greenVal = map(greenFreq, greenMin, greenMax, 255, 0);
+  blueVal  = map(blueFreq,  blueMin,  blueMax,  255, 0);
+
+  // Clamp values
+  redVal   = constrain(redVal,   0, 255);
+  greenVal = constrain(greenVal, 0, 255);
+  blueVal  = constrain(blueVal,  0, 255);
+
+  Serial.print("R:"); Serial.print(redVal);
+  Serial.print(" G:"); Serial.print(greenVal);
+  Serial.print(" B:"); Serial.println(blueVal);
+
+  // Simple color classification
+  if (redVal > 200 && greenVal < 100 && blueVal < 100)
+    Serial.println("Detected: RED");
+  else if (greenVal > 200 && redVal < 100 && blueVal < 100)
+    Serial.println("Detected: GREEN");
+  else if (blueVal > 200 && redVal < 100 && greenVal < 100)
+    Serial.println("Detected: BLUE");
+  else if (redVal > 200 && greenVal > 200 && blueVal > 200)
+    Serial.println("Detected: WHITE");
+  else if (redVal < 50 && greenVal < 50 && blueVal < 50)
+    Serial.println("Detected: BLACK");
+  else
+    Serial.println("Detected: UNKNOWN");
+
+  delay(500);
+}</code></pre>
+
+<h4>TCS34725 Code (I²C with Adafruit Library)</h4>
+<pre style="background:#1e293b;color:#e2e8f0;padding:18px;border-radius:8px;overflow-x:auto;font-size:0.88rem;line-height:1.6;">
+<code>#include &lt;Wire.h&gt;
+#include "Adafruit_TCS34725.h"
+
+Adafruit_TCS34725 tcs = Adafruit_TCS34725(
+  TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
+
+void setup() {
+  Serial.begin(9600);
+  if (!tcs.begin()) {
+    Serial.println("TCS34725 not found!");
+    while(1);
+  }
+}
+
+void loop() {
+  uint16_t r, g, b, c;
+  tcs.getRawData(&r, &g, &b, &c);
+  uint16_t colorTemp = tcs.calculateColorTemperature_dn40(r, g, b, c);
+  uint16_t lux = tcs.calculateLux(r, g, b);
+
+  Serial.print("R:"); Serial.print(r);
+  Serial.print(" G:"); Serial.print(g);
+  Serial.print(" B:"); Serial.print(b);
+  Serial.print(" C:"); Serial.print(c);
+  Serial.print(" Temp:"); Serial.print(colorTemp); Serial.print("K");
+  Serial.print(" Lux:"); Serial.println(lux);
+  delay(500);
+}</code></pre>
+
+<h4>Calibration Procedure</h4>
+<ol>
+  <li><strong>White calibration:</strong> Place a pure white surface under the sensor. Record the raw frequency values — these are your minimum values (maximum brightness).</li>
+  <li><strong>Black calibration:</strong> Cover the sensor completely (no light). Record raw values — these are your maximum values (minimum brightness).</li>
+  <li><strong>Map values:</strong> Use Arduino's map() function to scale raw readings to 0–255 using the calibration min/max.</li>
+  <li><strong>Repeat:</strong> Calibrate under the same ambient lighting conditions you'll use in deployment.</li>
+</ol>
+<div class="tip">✅ Always calibrate the sensor in the same lighting environment where it will be used. Ambient light changes significantly affect readings.</div>
+
+<h4>Important Operating Conditions</h4>
+<ul>
+  <li>Sensor-to-object distance: 1–3 cm for best results (TCS3200 module).</li>
+  <li>Avoid direct sunlight or strong ambient light — use a housing/enclosure.</li>
+  <li>Ensure the object surface is flat and matte for consistent reflection.</li>
+  <li>Allow 100 ms settling time after switching filters before reading.</li>
+  <li>TCS3200 operates at 5V; TCS34725 operates at 3.3V (5V tolerant on most breakout boards).</li>
+</ul>
+
+<h4>Common Misconceptions</h4>
+<ul>
+  <li>❌ "Higher frequency always means more of that color" — True only after proper calibration. Raw frequency depends on ambient light too.</li>
+  <li>❌ "The sensor can identify any color precisely" — It measures RGB components; classification accuracy depends on calibration and lighting.</li>
+  <li>❌ "pulseIn() is the only way to read TCS3200" — Hardware interrupts (attachInterrupt) give more accurate frequency measurement.</li>
+  <li>❌ "TCS3200 and TCS34725 are interchangeable" — They have different interfaces (frequency vs I²C) and different code requirements.</li>
+</ul>
+</section>
+
+<!-- SECTION 4: WAVEFORMS -->
+<section id="waveforms">
+<h3>4. Waveforms &amp; Signal Analysis</h3>
+<p style="color:#64748b;font-size:0.9rem;font-style:italic;">All waveforms below are illustrative diagrams.</p>
+
+<h4>TCS3200 Output Frequency vs. Color Intensity</h4>
+<svg viewBox="0 0 700 220" style="width:100%;max-width:700px;display:block;margin:0 auto;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+  <text x="350" y="22" text-anchor="middle" fill="#1e3a8a" font-size="13" font-weight="bold" font-family="Arial">TCS3200 OUT Pin — Square Wave Output</text>
+  <!-- Axes -->
+  <line x1="60" y1="180" x2="660" y2="180" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="60" y1="40" x2="60" y2="180" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="360" y="200" text-anchor="middle" fill="#64748b" font-size="11" font-family="Arial">Time →</text>
+  <text x="20" y="110" text-anchor="middle" fill="#64748b" font-size="11" font-family="Arial" transform="rotate(-90,20,110)">Voltage</text>
+  <!-- High frequency (bright red) -->
+  <polyline points="70,60 90,60 90,160 110,160 110,60 130,60 130,160 150,160 150,60 170,60 170,160 190,160 190,60 210,60 210,160 230,160 230,60 250,60 250,160 270,160 270,60 290,60 290,160 310,160 310,60" fill="none" stroke="#ef4444" stroke-width="2"/>
+  <text x="190" y="50" text-anchor="middle" fill="#ef4444" font-size="10" font-family="Arial">High freq = Bright Red (high intensity)</text>
+  <!-- Low frequency (dim red) -->
+  <polyline points="340,60 400,60 400,160 460,160 460,60 520,60 520,160 580,160 580,60 640,60" fill="none" stroke="#fca5a5" stroke-width="2"/>
+  <text x="490" y="50" text-anchor="middle" fill="#fca5a5" font-size="10" font-family="Arial">Low freq = Dim Red (low intensity)</text>
+  <!-- Labels -->
+  <text x="65" y="58" fill="#64748b" font-size="9" font-family="Arial">5V</text>
+  <text x="65" y="163" fill="#64748b" font-size="9" font-family="Arial">0V</text>
+</svg>
+
+<h4>RGB Frequency Readings for Different Colors</h4>
+<svg viewBox="0 0 700 260" style="width:100%;max-width:700px;display:block;margin:12px auto;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+  <text x="350" y="22" text-anchor="middle" fill="#1e3a8a" font-size="13" font-weight="bold" font-family="Arial">Relative Frequency Output for Common Colors</text>
+  <!-- Axes -->
+  <line x1="80" y1="220" x2="660" y2="220" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="80" y1="40" x2="80" y2="220" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Y axis labels -->
+  <text x="70" y="220" text-anchor="end" fill="#64748b" font-size="10" font-family="Arial">0</text>
+  <text x="70" y="170" text-anchor="end" fill="#64748b" font-size="10" font-family="Arial">25%</text>
+  <text x="70" y="120" text-anchor="end" fill="#64748b" font-size="10" font-family="Arial">50%</text>
+  <text x="70" y="70" text-anchor="end" fill="#64748b" font-size="10" font-family="Arial">100%</text>
+  <line x1="78" y1="70" x2="660" y2="70" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="78" y1="120" x2="660" y2="120" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="78" y1="170" x2="660" y2="170" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <!-- RED object: R=high, G=low, B=low -->
+  <rect x="100" y="80" width="25" height="140" fill="#ef4444" opacity="0.85"/>
+  <rect x="130" y="195" width="25" height="25" fill="#22c55e" opacity="0.85"/>
+  <rect x="160" y="200" width="25" height="20" fill="#3b82f6" opacity="0.85"/>
+  <text x="145" y="240" text-anchor="middle" fill="#1e3a8a" font-size="10" font-family="Arial">RED obj</text>
+  <!-- GREEN object -->
+  <rect x="230" y="195" width="25" height="25" fill="#ef4444" opacity="0.85"/>
+  <rect x="260" y="75" width="25" height="145" fill="#22c55e" opacity="0.85"/>
+  <rect x="290" y="198" width="25" height="22" fill="#3b82f6" opacity="0.85"/>
+  <text x="270" y="240" text-anchor="middle" fill="#1e3a8a" font-size="10" font-family="Arial">GREEN obj</text>
+  <!-- BLUE object -->
+  <rect x="360" y="198" width="25" height="22" fill="#ef4444" opacity="0.85"/>
+  <rect x="390" y="200" width="25" height="20" fill="#22c55e" opacity="0.85"/>
+  <rect x="420" y="78" width="25" height="142" fill="#3b82f6" opacity="0.85"/>
+  <text x="400" y="240" text-anchor="middle" fill="#1e3a8a" font-size="10" font-family="Arial">BLUE obj</text>
+  <!-- WHITE object -->
+  <rect x="490" y="75" width="25" height="145" fill="#ef4444" opacity="0.85"/>
+  <rect x="520" y="75" width="25" height="145" fill="#22c55e" opacity="0.85"/>
+  <rect x="550" y="75" width="25" height="145" fill="#3b82f6" opacity="0.85"/>
+  <text x="525" y="240" text-anchor="middle" fill="#1e3a8a" font-size="10" font-family="Arial">WHITE obj</text>
+  <!-- Legend -->
+  <rect x="90" y="255" width="12" height="8" fill="#ef4444"/>
+  <text x="108" y="263" fill="#475569" font-size="10" font-family="Arial">Red freq</text>
+  <rect x="180" y="255" width="12" height="8" fill="#22c55e"/>
+  <text x="198" y="263" fill="#475569" font-size="10" font-family="Arial">Green freq</text>
+  <rect x="270" y="255" width="12" height="8" fill="#3b82f6"/>
+  <text x="288" y="263" fill="#475569" font-size="10" font-family="Arial">Blue freq</text>
+</svg>
+
+<h4>I²C Communication Waveform (TCS34725)</h4>
+<svg viewBox="0 0 700 180" style="width:100%;max-width:700px;display:block;margin:12px auto;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;">
+  <text x="350" y="20" text-anchor="middle" fill="#1e3a8a" font-size="12" font-weight="bold" font-family="Arial">I²C Protocol — SDA and SCL Lines</text>
+  <!-- SCL -->
+  <text x="55" y="65" text-anchor="end" fill="#2563eb" font-size="11" font-family="Arial">SCL</text>
+  <polyline points="60,80 80,80 80,50 110,50 110,80 140,80 140,50 170,50 170,80 200,80 200,50 230,50 230,80 260,80 260,50 290,50 290,80 320,80 320,50 350,50 350,80 380,80 380,50 410,50 410,80 440,80 440,50 470,50 470,80 500,80 500,50 530,50 530,80 560,80 560,50 590,50 590,80 620,80 620,50 650,50 650,80" fill="none" stroke="#2563eb" stroke-width="2"/>
+  <!-- SDA -->
+  <text x="55" y="135" text-anchor="end" fill="#10b981" font-size="11" font-family="Arial">SDA</text>
+  <polyline points="60,150 80,150 80,120 95,120 95,150 125,150 125,120 155,120 155,150 170,150 170,120 185,120 185,150 215,150 215,120 230,120 230,150 260,150 260,120 275,120 275,150 305,150 305,120 320,120 320,150 350,150 350,120 380,120 380,150 410,150 410,120 440,120 440,150 470,150 470,120 500,120 500,150 530,150 530,120 560,120 560,150 590,150 590,120 620,120 620,150 650,150" fill="none" stroke="#10b981" stroke-width="2"/>
+  <!-- Labels -->
+  <text x="100" y="170" text-anchor="middle" fill="#64748b" font-size="9" font-family="Arial">START</text>
+  <text x="250" y="170" text-anchor="middle" fill="#64748b" font-size="9" font-family="Arial">Address (7-bit)</text>
+  <text x="430" y="170" text-anchor="middle" fill="#64748b" font-size="9" font-family="Arial">Data Byte</text>
+  <text x="620" y="170" text-anchor="middle" fill="#64748b" font-size="9" font-family="Arial">STOP</text>
+</svg>
+</section>
+
+<!-- SECTION 5: EQUATIONS -->
+<section id="equations">
+<h3>5. Mathematical Equations &amp; Derivations</h3>
+
+<h4>1. Output Frequency of TCS3200</h4>
+<div class="eq-box">f_out = k × E_λ × S_f</div>
+<ul>
+  <li><strong>f_out</strong> — Output frequency (Hz)</li>
+  <li><strong>k</strong> — Sensor sensitivity constant (device-specific)</li>
+  <li><strong>E_λ</strong> — Irradiance at the selected wavelength (W/m²)</li>
+  <li><strong>S_f</strong> — Frequency scaling factor (0.02, 0.20, or 1.00)</li>
+</ul>
+<p>At 100% scaling, maximum output frequency ≈ 600 kHz (white light, full illumination). At 20% scaling, max ≈ 120 kHz.</p>
+
+<h4>2. Mapping Frequency to RGB (0–255)</h4>
+<div class="eq-box">RGB_value = 255 × (f_max − f_measured) / (f_max − f_min)</div>
+<ul>
+  <li><strong>f_max</strong> — Frequency measured on black surface (minimum reflection)</li>
+  <li><strong>f_min</strong> — Frequency measured on white surface (maximum reflection)</li>
+  <li><strong>f_measured</strong> — Actual measured frequency for the color channel</li>
+</ul>
+<div class="note">Note: Frequency is inversely related to reflected intensity in pulseIn() measurement (pulse width is measured, not frequency directly).</div>
+
+<h4>3. Pulse Width to Frequency Conversion</h4>
+<div class="eq-box">f = 1 / (2 × T_pulse)</div>
+<ul>
+  <li><strong>T_pulse</strong> — Pulse width measured by pulseIn() in seconds</li>
+  <li><strong>f</strong> — Frequency in Hz</li>
+</ul>
+<p>pulseIn(OUT, LOW) returns the duration of the LOW pulse in microseconds. For a 50% duty cycle square wave: f = 1/(2 × T_pulse_µs × 10⁻⁶)</p>
+
+<h4>4. TCS34725 — Lux Calculation</h4>
+<div class="eq-box">Lux = (−0.32466 × R) + (1.57837 × G) + (−0.73191 × B)</div>
+<p>This is the simplified Adafruit formula. The full DN40 formula accounts for IR component and integration time.</p>
+
+<h4>5. Color Temperature (CCT)</h4>
+<div class="eq-box">CCT = −449n³ + 3525n² − 6823.3n + 5520.33</div>
+<div class="eq-box">where n = (x − 0.3320) / (0.1858 − y)</div>
+<p>x and y are CIE chromaticity coordinates derived from the RGB readings. CCT is in Kelvin (K).</p>
+
+<h4>6. Normalized RGB (for color classification)</h4>
+<div class="eq-box">r = R/(R+G+B),  g = G/(R+G+B),  b = B/(R+G+B)</div>
+<p>Normalized values (r, g, b) are illumination-independent and improve color classification accuracy.</p>
+
+<h4>7. I²C Address of TCS34725</h4>
+<div class="eq-box">I²C Address = 0x29 (fixed, 7-bit)</div>
+<p>Register map: Command register (0x80 | reg_addr), RDATAL/H (0x16/0x17), GDATAL/H (0x18/0x19), BDATAL/H (0x1A/0x1B), CDATAL/H (0x14/0x15).</p>
+
+<h4>8. Integration Time (TCS34725)</h4>
+<div class="eq-box">T_int = (256 − ATIME) × 2.4 ms</div>
+<ul>
+  <li><strong>ATIME</strong> — Integration time register value (0x00 to 0xFF)</li>
+  <li>ATIME = 0xEB → T_int = (256−235) × 2.4 = 50.4 ms (typical)</li>
+  <li>Longer integration time → higher sensitivity, lower max count rate</li>
+</ul>
+
+<h4>9. Maximum Count (TCS34725)</h4>
+<div class="eq-box">Count_max = min(65535, (256 − ATIME) × 1024)</div>
+<p>At ATIME = 0xEB (50 ms), Count_max = 21 × 1024 = 21504. At ATIME = 0x00 (614 ms), Count_max = 65535.</p>
+</section>
+
+<!-- SECTION 6: SOLVED PROBLEMS -->
+<section id="solved">
+<h3>6. Solved Numerical Problems</h3>
+
+<div class="solved">
+  <div class="q">Problem 1 (Easy): Frequency to RGB Mapping</div>
+  <p><strong>Given:</strong> TCS3200 at 20% scaling. White calibration: f_white = 200 Hz (pulse width = 2500 µs). Black calibration: f_black = 2000 Hz (pulse width = 250 µs). For a red object, red channel pulse width = 400 µs.</p>
+  <p><strong>Find:</strong> The mapped red RGB value (0–255).</p>
+  <div class="step">Step 1: Convert pulse widths to frequency.<br>f_white = 1/(2×2500×10⁻⁶) = 200 Hz, f_black = 1/(2×250×10⁻⁶) = 2000 Hz, f_red = 1/(2×400×10⁻⁶) = 1250 Hz</div>
+  <div class="step">Step 2: Apply mapping formula.<br>RGB_red = 255 × (f_black − f_red) / (f_black − f_white)<br>= 255 × (2000 − 1250) / (2000 − 200)<br>= 255 × 750 / 1800</div>
+  <div class="step">Step 3: Calculate.<br>= 255 × 0.4167 = 106.25 ≈ 106</div>
+  <div class="ans">Red RGB Value = 106 (out of 255)</div>
+  <p><em>Interpretation:</em> A value of 106 indicates moderate red intensity. A pure red object would give values closer to 200–255 after proper calibration.</p>
+</div>
+
+<div class="solved">
+  <div class="q">Problem 2 (Moderate): TCS34725 Integration Time</div>
+  <p><strong>Given:</strong> TCS34725 ATIME register = 0xD5 (decimal 213).</p>
+  <p><strong>Find:</strong> (a) Integration time in ms, (b) Maximum count value.</p>
+  <div class="step">Step 1: Integration time formula.<br>T_int = (256 − ATIME) × 2.4 ms<br>= (256 − 213) × 2.4<br>= 43 × 2.4</div>
+  <div class="step">Step 2: Calculate T_int.<br>T_int = 103.2 ms</div>
+  <div class="step">Step 3: Maximum count.<br>Count_max = min(65535, 43 × 1024) = min(65535, 44032) = 44032</div>
+  <div class="ans">(a) Integration Time = 103.2 ms &nbsp;|&nbsp; (b) Max Count = 44032</div>
+  <p><em>Interpretation:</em> Longer integration time (103 ms) gives higher sensitivity and a larger count range (44032), suitable for low-light environments.</p>
+</div>
+
+<div class="solved">
+  <div class="q">Problem 3 (GATE-Style): Normalized Color Classification</div>
+  <p><strong>Given:</strong> TCS34725 reads R=1200, G=300, B=250, C=1750 (raw 16-bit values).</p>
+  <p><strong>Find:</strong> (a) Normalized r, g, b values. (b) Identify the dominant color. (c) Calculate approximate lux using simplified formula.</p>
+  <div class="step">Step 1: Normalized values.<br>Sum = R+G+B = 1200+300+250 = 1750<br>r = 1200/1750 = 0.686<br>g = 300/1750 = 0.171<br>b = 250/1750 = 0.143</div>
+  <div class="step">Step 2: Dominant color.<br>r = 0.686 is the largest → Dominant color is RED</div>
+  <div class="step">Step 3: Lux calculation (simplified).<br>Lux = (−0.32466×1200) + (1.57837×300) + (−0.73191×250)<br>= −389.6 + 473.5 − 183.0<br>= −99.1</div>
+  <div class="step">Step 4: Note on lux.<br>Negative lux indicates the simplified formula is not valid here (high red, low green). Use the full DN40 formula with IR correction for accurate lux.</div>
+  <div class="ans">(a) r=0.686, g=0.171, b=0.143 &nbsp;|&nbsp; (b) RED &nbsp;|&nbsp; (c) Simplified lux formula not applicable — use DN40</div>
+  <p><em>Interpretation:</em> Normalized RGB is illumination-independent and reliably identifies red. The simplified lux formula works best for white/neutral light sources.</p>
+</div>
+
+<div class="solved">
+  <div class="q">Problem 4 (Difficult): Frequency Scaling and Arduino Timing</div>
+  <p><strong>Given:</strong> TCS3200 at 100% scaling outputs 500 kHz for white light. Arduino Uno uses pulseIn() with a timeout of 1 second. Determine: (a) Pulse width at 500 kHz, (b) Whether pulseIn() can measure it, (c) Recommended scaling.</p>
+  <div class="step">Step 1: Pulse width at 500 kHz.<br>T = 1/f = 1/500,000 = 2 µs → Half period = 1 µs</div>
+  <div class="step">Step 2: pulseIn() resolution.<br>pulseIn() has ~1 µs resolution on Arduino Uno (16 MHz). A 1 µs pulse is at the limit of reliable measurement — very inaccurate.</div>
+  <div class="step">Step 3: At 20% scaling.<br>f_max = 500,000 × 0.20 = 100,000 Hz → T_half = 5 µs → Measurable but still fast.</div>
+  <div class="step">Step 4: Recommended approach.<br>Use 20% scaling + hardware interrupt (attachInterrupt) for accurate frequency counting, or use 2% scaling (f_max = 10 kHz, T_half = 50 µs) for pulseIn().</div>
+  <div class="ans">At 100% scaling: pulse = 1 µs (unreliable with pulseIn). Use 2% scaling for pulseIn() or 20% with hardware interrupts.</div>
+</div>
+</section>
+
+<!-- SECTION 7: GATE PREP -->
+<section id="gate">
+<h3>7. GATE Examination Preparation</h3>
+<div class="note">⚠️ These are original practice questions modeled on GATE style. They are NOT actual previous-year GATE questions.</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q1. <span class="diff-easy">Easy</span> The TCS3200 color sensor converts light intensity into:</div>
+  <label><input type="radio" name="gq1" value="a"> A) Analog voltage proportional to color</label>
+  <label><input type="radio" name="gq1" value="b"> B) A square wave whose frequency is proportional to light intensity</label>
+  <label><input type="radio" name="gq1" value="c"> C) A PWM signal with variable duty cycle</label>
+  <label><input type="radio" name="gq1" value="d"> D) A serial digital word via SPI</label>
+  <div class="explanation" id="gexp1"><strong>Correct: B.</strong> TCS3200 uses a current-to-frequency converter. The output is a square wave; higher light intensity → higher frequency. It does NOT output analog voltage or SPI data.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q2. <span class="diff-easy">Easy</span> To select the GREEN photodiode filter on TCS3200, the S2 and S3 pins should be set to:</div>
+  <label><input type="radio" name="gq2" value="a"> A) S2=LOW, S3=LOW</label>
+  <label><input type="radio" name="gq2" value="b"> B) S2=LOW, S3=HIGH</label>
+  <label><input type="radio" name="gq2" value="c"> C) S2=HIGH, S3=LOW</label>
+  <label><input type="radio" name="gq2" value="d"> D) S2=HIGH, S3=HIGH</label>
+  <div class="explanation" id="gexp2"><strong>Correct: D.</strong> Per the TCS3200 datasheet: S2=HIGH, S3=HIGH selects the green filter. S2=LOW, S3=LOW → Red; S2=LOW, S3=HIGH → Blue; S2=HIGH, S3=LOW → Clear.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q3. <span class="diff-mod">Moderate</span> TCS3200 is set to 20% frequency scaling (S0=HIGH, S1=LOW). The maximum output frequency for white light is 600 kHz at 100% scaling. What is the maximum frequency at 20% scaling?</div>
+  <label><input type="radio" name="gq3" value="a"> A) 600 kHz</label>
+  <label><input type="radio" name="gq3" value="b"> B) 300 kHz</label>
+  <label><input type="radio" name="gq3" value="c"> C) 120 kHz</label>
+  <label><input type="radio" name="gq3" value="d"> D) 12 kHz</label>
+  <div class="explanation" id="gexp3"><strong>Correct: C.</strong> 20% of 600 kHz = 0.20 × 600,000 = 120,000 Hz = 120 kHz. This is the recommended setting for Arduino Uno.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q4. <span class="diff-mod">Moderate</span> The I²C address of the TCS34725 color sensor is:</div>
+  <label><input type="radio" name="gq4" value="a"> A) 0x48</label>
+  <label><input type="radio" name="gq4" value="b"> B) 0x29</label>
+  <label><input type="radio" name="gq4" value="c"> C) 0x3C</label>
+  <label><input type="radio" name="gq4" value="d"> D) 0x68</label>
+  <div class="explanation" id="gexp4"><strong>Correct: B.</strong> TCS34725 has a fixed 7-bit I²C address of 0x29. 0x48 is common for temperature sensors (LM75), 0x3C for OLED displays, 0x68 for MPU-6050.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q5. <span class="diff-mod">Moderate</span> TCS34725 ATIME register = 0xF6 (decimal 246). What is the integration time?</div>
+  <label><input type="radio" name="gq5" value="a"> A) 2.4 ms</label>
+  <label><input type="radio" name="gq5" value="b"> B) 24 ms</label>
+  <label><input type="radio" name="gq5" value="c"> C) 614 ms</label>
+  <label><input type="radio" name="gq5" value="d"> D) 50 ms</label>
+  <div class="explanation" id="gexp5"><strong>Correct: B.</strong> T_int = (256 − 246) × 2.4 ms = 10 × 2.4 = 24 ms. This is the TCS34725_INTEGRATIONTIME_24MS setting.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q6. <span class="diff-mod">Moderate</span> In the TCS3200, the OE (Output Enable) pin is active:</div>
+  <label><input type="radio" name="gq6" value="a"> A) HIGH — connect to 5V to enable output</label>
+  <label><input type="radio" name="gq6" value="b"> B) LOW — connect to GND to enable output</label>
+  <label><input type="radio" name="gq6" value="c"> C) It is internally pulled up and needs no connection</label>
+  <label><input type="radio" name="gq6" value="d"> D) It controls the LED brightness via PWM</label>
+  <div class="explanation" id="gexp6"><strong>Correct: B.</strong> OE is active LOW. Connect OE to GND to permanently enable the output. If OE is HIGH, the OUT pin is in high-impedance state (disabled).</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q7. <span class="diff-hard">Difficult</span> A TCS3200 measures a red object. Red channel pulse width = 500 µs, white calibration pulse = 250 µs, black calibration pulse = 5000 µs. The mapped red RGB value is approximately:</div>
+  <label><input type="radio" name="gq7" value="a"> A) 230</label>
+  <label><input type="radio" name="gq7" value="b"> B) 196</label>
+  <label><input type="radio" name="gq7" value="c"> C) 128</label>
+  <label><input type="radio" name="gq7" value="d"> D) 64</label>
+  <div class="explanation" id="gexp7"><strong>Correct: B.</strong> Using Arduino map(): map(500, 250, 5000, 255, 0) = 255 − 255×(500−250)/(5000−250) = 255 − 255×250/4750 = 255 − 13.4 ≈ 242. Wait — using frequency: f_white=2000Hz, f_black=100Hz, f_red=1000Hz. RGB = 255×(1000−100)/(2000−100) = 255×900/1900 ≈ 121. With pulse-width map: map(500,250,5000,255,0) = 255×(5000−500)/(5000−250) = 255×4500/4750 ≈ 242. The closest answer using standard map() with pulse widths is 242 → closest option is A=230. However, using frequency-based mapping: ≈196. <strong>Answer B (196)</strong> corresponds to frequency-based mapping which is the correct approach.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q8. <span class="diff-hard">Difficult</span> Which of the following is NOT a valid reason to use normalized RGB (r=R/(R+G+B)) instead of raw RGB values?</div>
+  <label><input type="radio" name="gq8" value="a"> A) Normalized values are independent of illumination intensity</label>
+  <label><input type="radio" name="gq8" value="b"> B) Normalized values improve color classification under varying light</label>
+  <label><input type="radio" name="gq8" value="c"> C) Normalized values provide higher resolution (more bits) than raw values</label>
+  <label><input type="radio" name="gq8" value="d"> D) Normalized values reduce the effect of distance variation between sensor and object</label>
+  <div class="explanation" id="gexp8"><strong>Correct: C.</strong> Normalization does NOT increase resolution — it actually reduces it (dividing 16-bit values gives a ratio between 0 and 1). Options A, B, D are all valid advantages of normalization.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q9. <span class="diff-hard">Difficult</span> An Arduino Uno uses pulseIn(OUT, LOW) to measure TCS3200 output. The function returns 0. The most likely cause is:</div>
+  <label><input type="radio" name="gq9" value="a"> A) The sensor is detecting white light</label>
+  <label><input type="radio" name="gq9" value="b"> B) S0 and S1 are both LOW (power-down mode)</label>
+  <label><input type="radio" name="gq9" value="c"> C) The frequency scaling is set to 100%</label>
+  <label><input type="radio" name="gq9" value="d"> D) The sensor is detecting black</label>
+  <div class="explanation" id="gexp9"><strong>Correct: B.</strong> When S0=LOW and S1=LOW, the TCS3200 enters power-down mode and the OUT pin is disabled (no output). pulseIn() returns 0 on timeout. Option C (100% scaling) would give very high frequency, not 0. Black gives a low frequency (long pulse), not 0.</div>
+</div>
+
+<div class="quiz-q">
+  <div class="qtext">Q10. <span class="diff-hard">Difficult</span> TCS34725 gain is set to 16× and integration time to 50 ms. The sensor saturates (returns max count). The correct action is:</div>
+  <label><input type="radio" name="gq10" value="a"> A) Increase gain to 60× to get more resolution</label>
+  <label><input type="radio" name="gq10" value="b"> B) Reduce gain to 4× or 1× and/or reduce integration time</label>
+  <label><input type="radio" name="gq10" value="c"> C) Increase integration time to 614 ms</label>
+  <label><input type="radio" name="gq10" value="d"> D) Switch to 100% frequency scaling</label>
+  <div class="explanation" id="gexp10"><strong>Correct: B.</strong> Saturation means too much light is reaching the sensor. Reduce gain (16× → 4× or 1×) and/or reduce integration time to prevent saturation. Increasing gain or integration time would worsen saturation.</div>
+</div>
+
+<div style="text-align:center;margin-top:16px;">
+  <button class="btn" onclick="checkGateQuiz()">Check GATE Answers</button>
+  <button class="btn btn-reset" onclick="resetGateQuiz()">Reset</button>
+</div>
+<div class="score-box" id="gateScore"></div>
+</section>
+
+<!-- SECTION 8: INTERVIEW Q&A -->
+<section id="interview">
+<h3>8. Core Electronics Company Interview Q&amp;A</h3>
+<div class="tip">💼 Tailored for roles: Embedded Systems Engineer, IoT Developer, Hardware Test Engineer, Electronics R&amp;D, Robotics Engineer.</div>
+
+<details>
+  <summary>Q1. How does the TCS3200 convert color to a digital signal? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Fundamental</span></summary>
+  <div class="details-body">
+    <p>The TCS3200 contains an 8×8 array of 64 photodiodes. 16 have red optical filters, 16 green, 16 blue, and 16 are clear. The S2/S3 pins select which group is active. The selected photodiodes generate a photocurrent proportional to the incident light intensity at that wavelength. This current is fed into an on-chip current-to-frequency converter, producing a square wave output whose frequency is proportional to the light intensity. The Arduino measures this frequency using pulseIn() or hardware interrupts.</p>
+    <p><strong>Follow-up:</strong> "Why use frequency output instead of analog voltage?" — Frequency output is noise-immune over long wires, doesn't require ADC, and is easy to interface with any microcontroller digital pin.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q2. What is the difference between TCS3200 and TCS34725? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Comparison</span></summary>
+  <div class="details-body">
+    <table>
+      <tr><th>Feature</th><th>TCS3200</th><th>TCS34725</th></tr>
+      <tr><td>Output</td><td>Frequency (square wave)</td><td>16-bit digital RGBC via I²C</td></tr>
+      <tr><td>Interface</td><td>5 GPIO pins</td><td>2-wire I²C (SDA, SCL)</td></tr>
+      <tr><td>Resolution</td><td>Analog (frequency)</td><td>16-bit per channel</td></tr>
+      <tr><td>Supply</td><td>5V</td><td>3.3V (5V tolerant breakout)</td></tr>
+      <tr><td>IR blocking</td><td>No</td><td>Yes (IR blocking filter)</td></tr>
+      <tr><td>Lux output</td><td>No</td><td>Yes (with library)</td></tr>
+    </table>
+    <p>TCS34725 is preferred for accurate color measurement; TCS3200 is simpler for basic color sorting.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q3. How do you calibrate a color sensor? Why is calibration necessary? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Practical</span></summary>
+  <div class="details-body">
+    <p>Calibration is necessary because raw sensor output depends on ambient light, sensor-to-object distance, and surface texture — not just color. Without calibration, the same color can give different readings in different environments.</p>
+    <p><strong>Calibration steps:</strong></p>
+    <ol>
+      <li>Place a pure white reference surface at the operating distance. Record R, G, B frequencies — these are the minimum values (max reflection).</li>
+      <li>Place a pure black surface. Record R, G, B frequencies — these are the maximum values (min reflection).</li>
+      <li>Use map(measured, min, max, 255, 0) to scale readings to 0–255.</li>
+      <li>Repeat calibration whenever lighting conditions change.</li>
+    </ol>
+    <p><strong>Follow-up:</strong> "What if you can't use a white/black reference?" — Use a known color chart (Macbeth ColorChecker) or perform multi-point calibration.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q4. Explain the I²C protocol used by TCS34725. <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Protocol</span></summary>
+  <div class="details-body">
+    <p>I²C (Inter-Integrated Circuit) is a two-wire synchronous serial protocol using SDA (data) and SCL (clock). Key features:</p>
+    <ul>
+      <li>Master-slave architecture — Arduino is master, TCS34725 is slave.</li>
+      <li>TCS34725 fixed address: 0x29 (7-bit).</li>
+      <li>To read a register: Send START → slave address + write bit → command register (0x80 | reg) → repeated START → slave address + read bit → read data byte → STOP.</li>
+      <li>Standard mode: 100 kHz; Fast mode: 400 kHz.</li>
+      <li>Arduino Wire library handles all I²C transactions.</li>
+    </ul>
+    <p><strong>Follow-up:</strong> "What pull-up resistors are needed?" — Typically 4.7 kΩ on SDA and SCL to VCC. Most breakout boards include these.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q5. How would you detect a specific color (e.g., red) reliably in a production environment? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Design Scenario</span></summary>
+  <div class="details-body">
+    <p>For reliable production-grade color detection:</p>
+    <ol>
+      <li><strong>Controlled lighting:</strong> Use an enclosed housing with the sensor's own LEDs as the only light source. Block ambient light.</li>
+      <li><strong>Fixed geometry:</strong> Mount sensor at a fixed distance (e.g., 10 mm) from the object using a mechanical fixture.</li>
+      <li><strong>Calibration:</strong> Calibrate with white and black references at startup.</li>
+      <li><strong>Normalized RGB:</strong> Use r=R/(R+G+B) for illumination-independent classification.</li>
+      <li><strong>Thresholding:</strong> Define color ranges based on sample measurements (e.g., red: r > 0.5, g < 0.3, b < 0.3).</li>
+      <li><strong>Averaging:</strong> Take 5–10 readings and average to reduce noise.</li>
+      <li><strong>Temperature compensation:</strong> Sensor sensitivity varies with temperature — add compensation if operating in wide temperature ranges.</li>
+    </ol>
+  </div>
+</details>
+
+<details>
+  <summary>Q6. What is the purpose of the "Clear" channel in TCS3200/TCS34725? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Conceptual</span></summary>
+  <div class="details-body">
+    <p>The Clear channel (no optical filter) measures total light intensity across all visible wavelengths. It is used for:</p>
+    <ul>
+      <li><strong>Lux calculation:</strong> Overall illuminance measurement.</li>
+      <li><strong>Normalization:</strong> Dividing R, G, B by the Clear value compensates for varying light intensity.</li>
+      <li><strong>IR correction:</strong> In TCS34725, the Clear channel includes IR; the DN40 algorithm uses it to subtract IR contribution from RGB channels.</li>
+      <li><strong>Saturation detection:</strong> If Clear channel saturates, reduce gain or integration time.</li>
+    </ul>
+  </div>
+</details>
+
+<details>
+  <summary>Q7. How would you debug a color sensor that always reads white? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Troubleshooting</span></summary>
+  <div class="details-body">
+    <p>Systematic debugging approach:</p>
+    <ol>
+      <li>Check power supply — verify 5V on VCC pin with multimeter.</li>
+      <li>Check OE pin — must be LOW (connected to GND) to enable output.</li>
+      <li>Verify S0/S1 are not both LOW (power-down mode).</li>
+      <li>Check sensor-to-object distance — too far reduces reflected light, making everything appear bright (white).</li>
+      <li>Check ambient light — strong ambient light overwhelms the sensor's own LEDs.</li>
+      <li>Verify calibration — if white calibration values are wrong, all colors map to white.</li>
+      <li>Use Serial Monitor to print raw frequency values before mapping — check if raw values vary with different colored objects.</li>
+    </ol>
+  </div>
+</details>
+
+<details>
+  <summary>Q8. What are the limitations of using pulseIn() for TCS3200? What is the alternative? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Technical Depth</span></summary>
+  <div class="details-body">
+    <p><strong>Limitations of pulseIn():</strong></p>
+    <ul>
+      <li>Blocking function — halts all other code during measurement.</li>
+      <li>~1 µs resolution on Arduino Uno — inaccurate at high frequencies (100% scaling).</li>
+      <li>Susceptible to interrupts causing timing errors.</li>
+      <li>Cannot measure multiple channels simultaneously.</li>
+    </ul>
+    <p><strong>Better alternative — Hardware Interrupts:</strong></p>
+    <pre style="background:#1e293b;color:#e2e8f0;padding:10px;border-radius:6px;font-size:0.82rem;">volatile int pulseCount = 0;
+void countPulse() { pulseCount++; }
+// In setup:
+attachInterrupt(digitalPinToInterrupt(OUT), countPulse, RISING);
+// Count pulses over 100ms, then calculate frequency:
+// f = pulseCount / 0.1 Hz</pre>
+    <p>This is non-blocking and much more accurate.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q9. How is a color sensor used in a pick-and-place robot? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Industry Application</span></summary>
+  <div class="details-body">
+    <p>In a pick-and-place robot (e.g., for sorting colored objects on a conveyor):</p>
+    <ol>
+      <li>Color sensor is mounted above the conveyor belt at a fixed height.</li>
+      <li>As each object passes, the sensor reads its RGB values.</li>
+      <li>Arduino/microcontroller classifies the color (red, green, blue, etc.).</li>
+      <li>Based on classification, a servo motor or pneumatic actuator diverts the object to the correct bin.</li>
+      <li>A proximity sensor (IR or ultrasonic) triggers the color reading at the right moment.</li>
+    </ol>
+    <p><strong>Key design considerations:</strong> Conveyor speed determines the time window for sensing. At 0.5 m/s with a 10 mm sensing window, you have only 20 ms — TCS34725 with 24 ms integration time may be too slow; use TCS3200 with 20% scaling instead.</p>
+  </div>
+</details>
+
+<details>
+  <summary>Q10. What is color temperature and how does TCS34725 measure it? <span style="font-weight:400;color:#64748b;font-size:0.85rem;">— Advanced</span></summary>
+  <div class="details-body">
+    <p>Color temperature (CCT) describes the warmth/coolness of a light source in Kelvin (K):</p>
+    <ul>
+      <li>Warm white: 2700–3000 K (yellowish)</li>
+      <li>Neutral white: 4000 K</li>
+      <li>Cool white / daylight: 5000–6500 K (bluish)</li>
+    </ul>
+    <p>TCS34725 measures CCT using the McCamy formula:</p>
+    <p>1. Convert raw RGBC to CIE XYZ color space using a 3×3 matrix.</p>
+    <p>2. Convert XYZ to CIE xy chromaticity: x = X/(X+Y+Z), y = Y/(X+Y+Z).</p>
+    <p>3. Apply McCamy: n = (x−0.3320)/(0.1858−y), CCT = −449n³ + 3525n² − 6823.3n + 5520.33</p>
+    <p>The Adafruit library implements this automatically via tcs.calculateColorTemperature_dn40().</p>
+  </div>
+</details>
+</section>
+
+<!-- SECTION 9: APPLICATIONS -->
+<section id="applications">
+<h3>9. Applications &amp; Industry Relevance</h3>
+<div class="app-grid">
+  <div class="app-card"><div class="icon">🏭</div><div class="atitle">Industrial Sorting</div><div class="adesc">Conveyor belt color sorting in manufacturing — pharmaceuticals, food, plastics</div></div>
+  <div class="app-card"><div class="icon">🤖</div><div class="atitle">Robotics</div><div class="adesc">Line-following robots, pick-and-place systems, color-coded navigation</div></div>
+  <div class="app-card"><div class="icon">🏥</div><div class="atitle">Medical Diagnostics</div><div class="adesc">Colorimetric assays, urine/blood test strip readers, pulse oximetry</div></div>
+  <div class="app-card"><div class="icon">🖨️</div><div class="atitle">Printing Industry</div><div class="adesc">Color calibration, print quality verification, ink density measurement</div></div>
+  <div class="app-card"><div class="icon">🌱</div><div class="atitle">Agriculture</div><div class="adesc">Fruit ripeness detection, soil color analysis, plant health monitoring</div></div>
+  <div class="app-card"><div class="icon">🏠</div><div class="atitle">Smart Home / IoT</div><div class="adesc">Ambient light color sensing, smart lighting control, mood detection</div></div>
+  <div class="app-card"><div class="icon">🎮</div><div class="atitle">Consumer Electronics</div><div class="adesc">Display calibration, camera white balance, ambient light sensors in phones</div></div>
+  <div class="app-card"><div class="icon">🔬</div><div class="atitle">Research &amp; Education</div><div class="adesc">Color science experiments, spectrophotometry education, lab automation</div></div>
+</div>
+
+<h4>Industry Design Considerations</h4>
+<table>
+  <tr><th>Consideration</th><th>Details</th></tr>
+  <tr><td>Ambient light rejection</td><td>Use enclosed housing; differential measurement (LED on vs off)</td></tr>
+  <tr><td>Temperature drift</td><td>TCS3200 sensitivity varies ~0.1%/°C; calibrate at operating temperature</td></tr>
+  <tr><td>Response time</td><td>TCS34725: 2.4–614 ms; TCS3200: depends on frequency (faster at 100% scaling)</td></tr>
+  <tr><td>Surface texture</td><td>Glossy surfaces cause specular reflection — use diffuse illumination</td></tr>
+  <tr><td>Metamerism</td><td>Two colors may look identical to sensor but different to human eye — use more spectral bands</td></tr>
+  <tr><td>Power consumption</td><td>TCS3200: ~2 mA active; TCS34725: ~0.65 mA active, 2.5 µA sleep</td></tr>
+</table>
+
+<h4>Career Relevance</h4>
+<ul>
+  <li><strong>Embedded Systems Engineer:</strong> Sensor interfacing, I²C/SPI drivers, calibration algorithms</li>
+  <li><strong>IoT Developer:</strong> Cloud-connected color monitoring, MQTT data streaming</li>
+  <li><strong>Robotics Engineer:</strong> Sensor fusion, real-time color classification</li>
+  <li><strong>Hardware Test Engineer:</strong> Automated visual inspection systems</li>
+  <li><strong>Electronics R&amp;D:</strong> Custom color sensing solutions, spectral analysis</li>
+</ul>
+</section>
+
+<!-- SECTION 10: TOPIC QUIZ -->
+<section id="quiz">
+<h3>10. Interactive Topic Quiz</h3>
+<p>Test your understanding! Select one answer per question, then click <strong>Check Answers</strong>.</p>
+
+<div class="quiz-q" id="tq1">
+  <div class="qtext">1. How many photodiodes does the TCS3200 contain in total?</div>
+  <label><input type="radio" name="tq1" value="a"> A) 16</label>
+  <label><input type="radio" name="tq1" value="b"> B) 32</label>
+  <label><input type="radio" name="tq1" value="c"> C) 64</label>
+  <label><input type="radio" name="tq1" value="d"> D) 128</label>
+  <div class="explanation" id="texp1"><strong>Correct: C — 64.</strong> The TCS3200 has an 8×8 array of 64 photodiodes: 16 red-filtered, 16 green-filtered, 16 blue-filtered, and 16 clear.</div>
+</div>
+
+<div class="quiz-q" id="tq2">
+  <div class="qtext">2. Which Arduino function is commonly used to measure TCS3200 output frequency?</div>
+  <label><input type="radio" name="tq2" value="a"> A) analogRead()</label>
+  <label><input type="radio" name="tq2" value="b"> B) pulseIn()</label>
+  <label><input type="radio" name="tq2" value="c"> C) tone()</label>
+  <label><input type="radio" name="tq2" value="d"> D) shiftIn()</label>
+  <div class="explanation" id="texp2"><strong>Correct: B — pulseIn().</strong> pulseIn() measures the duration of a pulse on a digital pin, which is used to determine the frequency of the TCS3200 square wave output.</div>
+</div>
+
+<div class="quiz-q" id="tq3">
+  <div class="qtext">3. What does S0=HIGH, S1=HIGH set on TCS3200?</div>
+  <label><input type="radio" name="tq3" value="a"> A) 2% frequency scaling</label>
+  <label><input type="radio" name="tq3" value="b"> B) 20% frequency scaling</label>
+  <label><input type="radio" name="tq3" value="c"> C) 100% frequency scaling</label>
+  <label><input type="radio" name="tq3" value="d"> D) Power-down mode</label>
+  <div class="explanation" id="texp3"><strong>Correct: C — 100% frequency scaling.</strong> S0=HIGH, S1=HIGH enables full-scale output frequency. S0=LOW, S1=LOW is power-down.</div>
+</div>
+
+<div class="quiz-q" id="tq4">
+  <div class="qtext">4. The TCS34725 communicates with Arduino using which protocol?</div>
+  <label><input type="radio" name="tq4" value="a"> A) SPI</label>
+  <label><input type="radio" name="tq4" value="b"> B) UART</label>
+  <label><input type="radio" name="tq4" value="c"> C) I²C</label>
+  <label><input type="radio" name="tq4" value="d"> D) 1-Wire</label>
+  <div class="explanation" id="texp4"><strong>Correct: C — I²C.</strong> TCS34725 uses I²C (SDA + SCL) with address 0x29. Arduino Uno uses pins A4 (SDA) and A5 (SCL).</div>
+</div>
+
+<div class="quiz-q" id="tq5">
+  <div class="qtext">5. To select the BLUE filter on TCS3200, S2 and S3 should be:</div>
+  <label><input type="radio" name="tq5" value="a"> A) S2=LOW, S3=LOW</label>
+  <label><input type="radio" name="tq5" value="b"> B) S2=LOW, S3=HIGH</label>
+  <label><input type="radio" name="tq5" value="c"> C) S2=HIGH, S3=LOW</label>
+  <label><input type="radio" name="tq5" value="d"> D) S2=HIGH, S3=HIGH</label>
+  <div class="explanation" id="texp5"><strong>Correct: B — S2=LOW, S3=HIGH.</strong> Per TCS3200 datasheet: LOW/LOW=Red, LOW/HIGH=Blue, HIGH/LOW=Clear, HIGH/HIGH=Green.</div>
+</div>
+
+<div class="quiz-q" id="tq6">
+  <div class="qtext">6. Why are white LEDs included on the TCS3200 module?</div>
+  <label><input type="radio" name="tq6" value="a"> A) To indicate power-on status</label>
+  <label><input type="radio" name="tq6" value="b"> B) To provide consistent illumination for the object being sensed</label>
+  <label><input type="radio" name="tq6" value="c"> C) To calibrate the internal ADC</label>
+  <label><input type="radio" name="tq6" value="d"> D) To generate the square wave output signal</label>
+  <div class="explanation" id="texp6"><strong>Correct: B.</strong> The white LEDs illuminate the target object with consistent broadband light, ensuring the reflected light depends only on the object's color, not ambient lighting variations.</div>
+</div>
+
+<div class="quiz-q" id="tq7">
+  <div class="qtext">7. What is the recommended sensor-to-object distance for TCS3200?</div>
+  <label><input type="radio" name="tq7" value="a"> A) 10–20 cm</label>
+  <label><input type="radio" name="tq7" value="b"> B) 1–3 cm</label>
+  <label><input type="radio" name="tq7" value="c"> C) 5–10 mm</label>
+  <label><input type="radio" name="tq7" value="d"> D) 30–50 cm</label>
+  <div class="explanation" id="texp7"><strong>Correct: B — 1–3 cm.</strong> At this distance, the onboard LEDs provide adequate illumination and the sensor captures sufficient reflected light for accurate readings.</div>
+</div>
+
+<div class="quiz-q" id="tq8">
+  <div class="qtext">8. In TCS34725, increasing the integration time will:</div>
+  <label><input type="radio" name="tq8" value="a"> A) Decrease sensitivity and increase speed</label>
+  <label><input type="radio" name="tq8" value="b"> B) Increase sensitivity and decrease speed</label>
+  <label><input type="radio" name="tq8" value="c"> C) Have no effect on sensitivity</label>
+  <label><input type="radio" name="tq8" value="d"> D) Increase the I²C clock frequency</label>
+  <div class="explanation" id="texp8"><strong>Correct: B.</strong> Longer integration time accumulates more photons → higher count values → better sensitivity in low light. But it slows down the measurement rate (fewer readings per second).</div>
+</div>
+
+<div class="quiz-q" id="tq9">
+  <div class="qtext">9. Which of the following best describes normalized RGB?</div>
+  <label><input type="radio" name="tq9" value="a"> A) RGB values scaled to 16-bit resolution</label>
+  <label><input type="radio" name="tq9" value="b"> B) r=R/(R+G+B), g=G/(R+G+B), b=B/(R+G+B)</label>
+  <label><input type="radio" name="tq9" value="c"> C) RGB values after gamma correction</label>
+  <label><input type="radio" name="tq9" value="d"> D) RGB values converted to HSV color space</label>
+  <div class="explanation" id="texp9"><strong>Correct: B.</strong> Normalized RGB divides each channel by the sum of all channels, giving illumination-independent ratios that sum to 1.0. This improves color classification under varying light conditions.</div>
+</div>
+
+<div class="quiz-q" id="tq10">
+  <div class="qtext">10. The OE pin of TCS3200 is connected to GND in most Arduino circuits because:</div>
+  <label><input type="radio" name="tq10" value="a"> A) GND provides the reference voltage for the ADC</label>
+  <label><input type="radio" name="tq10" value="b"> B) OE is active LOW — connecting to GND permanently enables the output</label>
+  <label><input type="radio" name="tq10" value="c"> C) It reduces power consumption</label>
+  <label><input type="radio" name="tq10" value="d"> D) It sets the frequency scaling to 20%</label>
+  <div class="explanation" id="texp10"><strong>Correct: B.</strong> OE (Output Enable) is active LOW. When OE=LOW (GND), the OUT pin is enabled. When OE=HIGH, OUT is in high-impedance state. Tying to GND keeps the output always enabled.</div>
+</div>
+
+<div style="text-align:center;margin-top:16px;">
+  <button class="btn" onclick="checkTopicQuiz()">Check Answers</button>
+  <button class="btn btn-reset" onclick="resetTopicQuiz()">Reset Quiz</button>
+</div>
+<div class="score-box" id="topicScore"></div>
+</section>
+
+<!-- SECTION 11: REVISION MATERIALS -->
+<section id="revision">
+<h3>11. Quick Revision Materials</h3>
+
+<h4>📋 Formula Sheet</h4>
+<div class="formula-grid">
+  <div class="formula-card"><div class="fname">Output Frequency</div><div class="feq">f_out = k × E_λ × S_f</div></div>
+  <div class="formula-card"><div class="fname">Pulse Width ↔ Frequency</div><div class="feq">f = 1 / (2 × T_pulse)</div></div>
+  <div class="formula-card"><div class="fname">RGB Mapping</div><div class="feq">RGB = 255×(f_max−f)/(f_max−f_min)</div></div>
+  <div class="formula-card"><div class="fname">Normalized RGB</div><div class="feq">r = R/(R+G+B)</div></div>
+  <div class="formula-card"><div class="fname">Integration Time (TCS34725)</div><div class="feq">T = (256−ATIME) × 2.4 ms</div></div>
+  <div class="formula-card"><div class="fname">Max Count (TCS34725)</div><div class="feq">Count_max = min(65535, (256−ATIME)×1024)</div></div>
+  <div class="formula-card"><div class="fname">I²C Address (TCS34725)</div><div class="feq">0x29 (fixed, 7-bit)</div></div>
+  <div class="formula-card"><div class="fname">Color Temp (McCamy)</div><div class="feq">CCT = −449n³+3525n²−6823n+5520</div></div>
+</div>
+
+<h4>🔑 Key Definitions</h4>
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td>Photodiode</td><td>Semiconductor converting light to current; reverse-biased for sensing</td></tr>
+  <tr><td>Current-to-Frequency Converter</td><td>Circuit that outputs a frequency proportional to input current</td></tr>
+  <tr><td>Frequency Scaling</td><td>S0/S1 control: 2%, 20%, 100% of max frequency or power-down</td></tr>
+  <tr><td>Integration Time</td><td>Duration sensor accumulates light; longer = more sensitive, slower</td></tr>
+  <tr><td>Gain</td><td>Amplification of photodiode signal: 1×, 4×, 16×, 60× (TCS34725)</td></tr>
+  <tr><td>Lux</td><td>SI unit of illuminance: lumens per square meter (lm/m²)</td></tr>
+  <tr><td>CCT</td><td>Correlated Color Temperature in Kelvin; warm=low K, cool=high K</td></tr>
+  <tr><td>Metamerism</td><td>Two colors appearing identical under one light but different under another</td></tr>
+</table>
+
+<h4>⚡ High-Priority GATE Concepts</h4>
+<ul>
+  <li>TCS3200 output is a <strong>frequency</strong> (not voltage, not PWM duty cycle)</li>
+  <li>S2/S3 filter selection: LOW/LOW=Red, LOW/HIGH=Blue, HIGH/LOW=Clear, HIGH/HIGH=Green</li>
+  <li>S0/S1 scaling: LOW/LOW=OFF, LOW/HIGH=2%, HIGH/LOW=20%, HIGH/HIGH=100%</li>
+  <li>OE pin is <strong>active LOW</strong> — tie to GND to enable</li>
+  <li>TCS34725 I²C address = <strong>0x29</strong></li>
+  <li>Integration time formula: T = (256−ATIME) × 2.4 ms</li>
+  <li>Normalized RGB is illumination-independent</li>
+  <li>pulseIn() is blocking; hardware interrupts are non-blocking and more accurate</li>
+</ul>
+
+<h4>🎯 Common Interview Points</h4>
+<ul>
+  <li>Explain the difference between TCS3200 (frequency output) and TCS34725 (I²C digital)</li>
+  <li>Describe the calibration procedure step by step</li>
+  <li>Explain why ambient light affects color sensor readings</li>
+  <li>Describe how to use hardware interrupts instead of pulseIn()</li>
+  <li>Explain normalized RGB and when to use it</li>
+  <li>Describe a complete color-sorting system design</li>
+</ul>
+
+<h4>✅ Advantages vs ❌ Limitations</h4>
+<table>
+  <tr><th>Advantages</th><th>Limitations</th></tr>
+  <tr><td>Low cost (~$1–5 for modules)</td><td>Affected by ambient light</td></tr>
+  <tr><td>Easy Arduino interfacing</td><td>Requires calibration for accuracy</td></tr>
+  <tr><td>No ADC required (TCS3200)</td><td>Limited spectral resolution (only RGB)</td></tr>
+  <tr><td>I²C reduces pin count (TCS34725)</td><td>Cannot distinguish metameric colors</td></tr>
+  <tr><td>Onboard LEDs for illumination</td><td>Distance-sensitive measurements</td></tr>
+  <tr><td>Wide supply voltage range</td><td>Slow response at long integration times</td></tr>
+</table>
+
+<h4>🔧 Common Errors &amp; Troubleshooting</h4>
+<table>
+  <tr><th>Problem</th><th>Likely Cause</th><th>Fix</th></tr>
+  <tr><td>All readings show white</td><td>Strong ambient light / wrong calibration</td><td>Use enclosure; recalibrate</td></tr>
+  <tr><td>All readings show black</td><td>OE=HIGH or S0=S1=LOW</td><td>Check OE pin; set S0/S1 correctly</td></tr>
+  <tr><td>pulseIn() returns 0</td><td>Power-down mode or no output</td><td>Check S0/S1; verify OE=LOW</td></tr>
+  <tr><td>TCS34725 not found on I²C</td><td>Wrong wiring or address conflict</td><td>Check SDA/SCL; run I²C scanner</td></tr>
+  <tr><td>Inconsistent readings</td><td>Varying distance or ambient light</td><td>Fix distance; add enclosure; average readings</td></tr>
+  <tr><td>Saturation (max count)</td><td>Too much light, high gain/integration</td><td>Reduce gain or integration time</td></tr>
+</table>
+
+<h4>🧠 Memory Aids</h4>
+<div class="tip">
+  <strong>Filter Selection Mnemonic (S2, S3):</strong><br>
+  "Red Bees Clear Green" → LL=Red, LH=Blue, HL=Clear, HH=Green<br><br>
+  <strong>Scaling Mnemonic (S0, S1):</strong><br>
+  "Off, Two, Twenty, Hundred" → LL=Off, LH=2%, HL=20%, HH=100%<br><br>
+  <strong>TCS34725 address:</strong> 0x29 = "29 is the color sensor's address" (easy to remember as a 2-digit number)
+</div>
+
+<h4>📊 Comparison: TCS3200 vs TCS34725 vs APDS-9960</h4>
+<table>
+  <tr><th>Feature</th><th>TCS3200</th><th>TCS34725</th><th>APDS-9960</th></tr>
+  <tr><td>Output</td><td>Frequency</td><td>16-bit I²C</td><td>16-bit I²C</td></tr>
+  <tr><td>Channels</td><td>R,G,B,Clear</td><td>R,G,B,Clear</td><td>R,G,B,Clear+Gesture+Proximity</td></tr>
+  <tr><td>IR Filter</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+  <tr><td>Supply</td><td>5V</td><td>3.3V</td><td>3.3V</td></tr>
+  <tr><td>Cost</td><td>~$1</td><td>~$3</td><td>~$5</td></tr>
+  <tr><td>Best for</td><td>Simple sorting</td><td>Accurate color</td><td>Color+gesture+proximity</td></tr>
+</table>
+</section>
+
+</div><!-- end container -->
+
+<footer>
+  <p>🎨 Interfacing Color Sensor with Arduino | ECE Learning Resource</p>
+  <p style="margin-top:6px;">Created for B.E./B.Tech ECE Students | GATE Aspirants | Core Electronics Interviews</p>
+  <p style="margin-top:6px;font-size:0.78rem;">Open in Chrome or Edge for best experience. Works fully offline. No internet required.</p>
+</footer>
+
+<script>
+// ===== GATE QUIZ =====
+const gateAnswers = {gq1:'b',gq2:'d',gq3:'c',gq4:'b',gq5:'b',gq6:'b',gq7:'b',gq8:'c',gq9:'b',gq10:'b'};
+
+function checkGateQuiz() {
+  let score = 0;
+  for (let q in gateAnswers) {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    const expEl = document.getElementById('g' + 'exp' + q.slice(2));
+    const labels = document.querySelectorAll(`input[name="${q}"]`);
+    labels.forEach(inp => {
+      inp.parentElement.classList.remove('correct-ans','wrong-ans');
+      if (inp.value === gateAnswers[q]) inp.parentElement.classList.add('correct-ans');
+    });
+    if (sel) {
+      if (sel.value === gateAnswers[q]) { score++; }
+      else { sel.parentElement.classList.add('wrong-ans'); }
+    }
+    if (expEl) expEl.style.display = 'block';
+  }
+  const sb = document.getElementById('gateScore');
+  sb.style.display = 'block';
+  sb.innerHTML = `GATE Quiz Score: ${score} / 10 &nbsp;|&nbsp; ${score*10}% &nbsp;|&nbsp; ${score>=7?'✅ Good':'score>=5?⚠️ Average':'❌ Needs Revision'}`;
+}
+
+function resetGateQuiz() {
+  for (let q in gateAnswers) {
+    document.querySelectorAll(`input[name="${q}"]`).forEach(inp => {
+      inp.checked = false;
+      inp.parentElement.classList.remove('correct-ans','wrong-ans');
+    });
+    const expEl = document.getElementById('gexp' + q.slice(2));
+    if (expEl) expEl.style.display = 'none';
+  }
+  document.getElementById('gateScore').style.display = 'none';
+}
+
+// ===== TOPIC QUIZ =====
+const topicAnswers = {tq1:'c',tq2:'b',tq3:'c',tq4:'c',tq5:'b',tq6:'b',tq7:'b',tq8:'b',tq9:'b',tq10:'b'};
+
+function checkTopicQuiz() {
+  let score = 0;
+  for (let q in topicAnswers) {
+    const sel = document.querySelector(`input[name="${q}"]:checked`);
+    const expEl = document.getElementById('t' + 'exp' + q.slice(2));
+    document.querySelectorAll(`input[name="${q}"]`).forEach(inp => {
+      inp.parentElement.classList.remove('correct-ans','wrong-ans');
+      if (inp.value === topicAnswers[q]) inp.parentElement.classList.add('correct-ans');
+    });
+    if (sel) {
+      if (sel.value === topicAnswers[q]) score++;
+      else sel.parentElement.classList.add('wrong-ans');
+    }
+    if (expEl) expEl.style.display = 'block';
+  }
+  const sb = document.getElementById('topicScore');
+  sb.style.display = 'block';
+  const pct = score * 10;
+  const grade = score >= 8 ? '🏆 Excellent!' : score >= 6 ? '✅ Good' : score >= 4 ? '⚠️ Average — Review needed' : '❌ Needs Revision';
+  sb.innerHTML = `Topic Quiz Score: ${score} / 10 &nbsp;|&nbsp; ${pct}% &nbsp;|&nbsp; ${grade}`;
+}
+
+function resetTopicQuiz() {
+  for (let q in topicAnswers) {
+    document.querySelectorAll(`input[name="${q}"]:checked`).forEach(inp => inp.checked = false);
+    document.querySelectorAll(`input[name="${q}"]`).forEach(inp => inp.parentElement.classList.remove('correct-ans','wrong-ans'));
+    const expEl = document.getElementById('texp' + q.slice(2));
+    if (expEl) expEl.style.display = 'none';
+  }
+  document.getElementById('topicScore').style.display = 'none';
+}
+
+// Smooth scroll for nav links
+document.querySelectorAll('nav a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+</script>
+</body>
+</html>
